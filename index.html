@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>basic_ERP</title>
+    <style>
+        * { box-sizing: border-box; }
+        html, body {
+            margin: 0; width: 100%; height: 100%;
+            font-family: Arial, "Malgun Gothic", sans-serif;
+            background: rgb(245, 247, 250); color: rgb(35, 39, 47);
+        }
+        button, input, select, textarea { font-family: inherit; }
+        button { cursor: pointer; }
+        .hidden { display: none !important; }
+
+        .login-page {
+            width: 100%; height: 100%; display: flex;
+            align-items: center; justify-content: center;
+            background: linear-gradient(135deg, rgb(35, 65, 120), rgb(70, 110, 180));
+        }
+        .login-box {
+            width: 430px; padding: 45px; background: white;
+            border-radius: 18px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+        }
+        .login-box h1 { margin: 0 0 10px; text-align: center; font-size: 32px; }
+        .login-box > p { margin: 0 0 30px; text-align: center; color: rgb(120, 125, 135); }
+
+        .input-group { margin-bottom: 16px; }
+        .input-group label { display: block; margin-bottom: 7px; font-size: 14px; font-weight: bold; }
+        .input-group input, .input-group select, .input-group textarea {
+            width: 100%; padding: 10px 13px;
+            border: 1px solid rgb(215, 219, 225); border-radius: 8px;
+            outline: none; font-size: 14px; background: white;
+        }
+        .input-group input, .input-group select { height: 45px; }
+        .input-group textarea { height: 80px; resize: vertical; }
+        .input-group input:focus, .input-group select:focus, .input-group textarea:focus { border-color: rgb(70, 110, 180); }
+
+        .login-button, .primary-button {
+            width: 100%; height: 46px; border: 0; border-radius: 8px;
+            background: rgb(45, 85, 150); color: white; font-size: 15px; font-weight: bold;
+        }
+        .login-button:hover, .primary-button:hover { background: rgb(35, 70, 130); }
+
+        .secondary-button {
+            width: 100%; height: 44px; margin-top: 10px;
+            border: 1px solid rgb(205, 210, 218); border-radius: 8px;
+            background: white; color: rgb(35, 39, 47);
+        }
+        .secondary-button:hover { background: rgb(245, 247, 250); }
+
+        .action-button {
+            padding: 6px 12px; border: 0; border-radius: 6px;
+            background: rgb(45, 85, 150); color: white; font-size: 13px;
+        }
+        .action-button:hover { background: rgb(35, 70, 130); }
+        .action-button:disabled { background: rgb(200, 205, 210); cursor: not-allowed; }
+
+        .danger-button {
+            padding: 6px 12px; border: 0; border-radius: 6px;
+            background: rgb(215, 70, 70); color: white; font-size: 13px;
+        }
+        .danger-button:hover { background: rgb(180, 50, 50); }
+
+        .app { display: flex; width: 100%; height: 100%; overflow: hidden; background: rgb(245, 247, 250); }
+        .sidebar { width: 240px; min-width: 240px; background: rgb(30, 38, 52); color: white; display: flex; flex-direction: column; }
+        .logo { height: 80px; display: flex; align-items: center; padding: 0 25px; font-size: 24px; font-weight: bold; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+        .user-box { padding: 20px 25px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+        .user-box strong { display: block; margin-bottom: 5px; }
+        .user-box span { color: rgb(180, 188, 200); font-size: 13px; }
+        .menu { padding: 15px 12px; flex: 1; }
+        .menu-item {
+            width: 100%; padding: 13px 14px; margin-bottom: 5px;
+            border: 0; border-radius: 7px; background: transparent;
+            color: rgb(220, 225, 235); text-align: left; font-size: 14px;
+        }
+        .menu-item:hover, .menu-item.active { background: rgb(55, 70, 92); color: white; }
+        .sidebar-bottom { padding: 12px; border-top: 1px solid rgba(255, 255, 255, 0.1); }
+        .sidebar-bottom button { width: 100%; height: 40px; margin-top: 7px; border: 0; border-radius: 7px; background: rgb(55, 70, 92); color: white; }
+        .sidebar-bottom button:hover { background: rgb(70, 85, 108); }
+
+        .main { flex: 1; min-width: 0; height: 100%; overflow-y: auto; }
+        .topbar {
+            height: 80px; background: white; border-bottom: 1px solid rgb(225, 228, 233);
+            display: flex; align-items: center; justify-content: space-between; padding: 0 30px;
+            position: relative;
+        }
+        .topbar h2 { margin: 0; font-size: 22px; }
+        .topbar-right { display: flex; align-items: center; gap: 15px; }
+        .company-name { color: rgb(110, 115, 125); font-size: 14px; }
+
+        /* 알림 스타일 */
+        .notification-wrapper { position: relative; }
+        .noti-btn {
+            background: rgb(240, 242, 245); border: 1px solid rgb(215, 219, 225);
+            padding: 8px 12px; border-radius: 8px; font-weight: bold; position: relative;
+        }
+        .noti-badge {
+            position: absolute; top: -5px; right: -5px;
+            background: rgb(215, 70, 70); color: white;
+            font-size: 11px; padding: 2px 6px; border-radius: 10px; font-weight: bold;
+        }
+        .notification-panel {
+            position: absolute; right: 0; top: 45px; width: 300px; max-height: 350px;
+            overflow-y: auto; background: white; border: 1px solid rgb(215, 219, 225);
+            border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); z-index: 100;
+        }
+        .notification-panel ul { list-style: none; margin: 0; padding: 0; }
+
+        .content { padding: 30px; }
+        .page { display: none; }
+        .page.active { display: block; }
+
+        .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-bottom: 25px; }
+        .card { padding: 25px; background: white; border-radius: 12px; border: 1px solid rgb(230, 233, 238); }
+        .card-title { color: rgb(115, 120, 130); font-size: 14px; margin-bottom: 12px; }
+        .card-value { font-size: 30px; font-weight: bold; }
+
+        .panel { padding: 25px; background: white; border-radius: 12px; border: 1px solid rgb(230, 233, 238); margin-bottom: 20px; }
+        .panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+        .panel-header h3 { margin: 0; }
+        .form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+
+        .table-wrapper { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 13px 10px; border-bottom: 1px solid rgb(235, 237, 241); text-align: left; font-size: 14px; white-space: nowrap; }
+        th { background: rgb(248, 249, 251); font-weight: bold; }
+
+        .status { display: inline-block; padding: 5px 9px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+        .status-available { background: #E6F4EA; color: #137333; }
+        .status-in-use { background: #FEF7E0; color: #B06000; }
+        .status-pending { background: #E8F0FE; color: #1A73E8; }
+        .status-return-pending { background: #FCE8E6; color: #C5221F; }
+
+        .modal { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-box { width: 650px; max-width: calc(100% - 40px); max-height: calc(100% - 40px); overflow-y: auto; padding: 30px; background: white; border-radius: 14px; }
+        .modal-box h2 { margin-top: 0; }
+        .modal-buttons { display: flex; gap: 10px; margin-top: 20px; }
+        .modal-buttons button { flex: 1; }
+        .small-text { color: rgb(120, 125, 135); font-size: 12px; }
+
+        @media (max-width: 1100px) {
+            .cards { grid-template-columns: repeat(2, 1fr); }
+            .form-grid { grid-template-columns: repeat(2, 1fr); }
+            .sidebar { width: 210px; min-width: 210px; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="loginScreen" class="login-page">
+    <div class="login-box">
+        <h1>basic_ERP</h1>
+        <p>기업용 ERP 재고관리 시스템</p>
+        <div class="input-group">
+            <label for="loginId">아이디</label>
+            <input id="loginId" type="text" autocomplete="username">
+        </div>
+        <div class="input-group">
+            <label for="loginPassword">비밀번호</label>
+            <input id="loginPassword" type="password" autocomplete="current-password">
+        </div>
+        <button class="login-button" onclick="login()">로그인</button>
+        <button class="secondary-button" onclick="openSignup()">회원가입</button>
+        <p class="small-text" style="margin-top: 18px;">관리자 테스트 계정: admin / 1234</p>
+    </div>
+</div>
+
+<div id="signupModal" class="modal hidden">
+    <div class="modal-box">
+        <h2>회원가입</h2>
+        <p class="small-text">새로운 ERP 계정을 생성합니다.</p>
+        <div class="form-grid">
+            <div class="input-group"><label for="signupId">아이디</label><input id="signupId" type="text"></div>
+            <div class="input-group"><label for="signupPassword">비밀번호</label><input id="signupPassword" type="password"></div>
+            <div class="input-group"><label for="signupPasswordConfirm">비밀번호 확인</label><input id="signupPasswordConfirm" type="password"></div>
+            <div class="input-group"><label for="signupName">이름</label><input id="signupName" type="text"></div>
+            <div class="input-group"><label for="signupDepartment">부서</label><input id="signupDepartment" type="text"></div>
+            <div class="input-group"><label for="signupPosition">직급</label><input id="signupPosition" type="text"></div>
+            <div class="input-group"><label for="signupEmail">이메일</label><input id="signupEmail" type="email"></div>
+            <div class="input-group"><label for="signupPhone">전화번호</label><input id="signupPhone" type="tel"></div>
+            <div class="input-group">
+                <label for="signupRole">권한</label>
+                <select id="signupRole">
+                    <option value="employee">직원</option>
+                    <option value="manager">팀장</option>
+                </select>
+            </div>
+        </div>
+        <div class="modal-buttons">
+            <button class="primary-button" onclick="signup()">가입하기</button>
+            <button class="secondary-button" onclick="closeSignup()">취소</button>
+        </div>
+    </div>
+</div>
+
+<div id="appScreen" class="app hidden">
+    <aside class="sidebar">
+        <div class="logo" id="companyLogo">basic_ERP</div>
+        <div class="user-box">
+            <strong id="currentUserName">사용자</strong>
+            <span id="currentUserInfo">직원</span>
+        </div>
+        <div class="menu">
+            <button class="menu-item" data-page="dashboard" onclick="showPage('dashboard')">대시보드</button>
+            <button class="menu-item" data-page="employees" onclick="showPage('employees')">직원 관리</button>
+            <button class="menu-item" data-page="inventory" onclick="showPage('inventory')">재고 관리</button>
+            <button class="menu-item" data-page="settings" onclick="showPage('settings')">설정</button>
+        </div>
+        <div class="sidebar-bottom">
+            <button onclick="toggleFullscreen()">전체화면</button>
+            <button onclick="logout()">로그아웃</button>
+        </div>
+    </aside>
+
+    <main class="main">
+        <div class="topbar">
+            <h2 id="pageTitle">대시보드</h2>
+            <div class="topbar-right">
+                <!-- 알림 영역 -->
+                <div class="notification-wrapper">
+                    <button class="noti-btn" onclick="toggleNotificationPanel()">
+                        🔔 알림
+                        <span id="notificationBadge" class="noti-badge hidden">0</span>
+                    </button>
+                    <div id="notificationPanel" class="notification-panel hidden">
+                        <ul id="notificationList"></ul>
+                    </div>
+                </div>
+                <div class="company-name" id="topCompanyName">basic_ERP</div>
+            </div>
+        </div>
+
+        <div class="content">
+            <!-- 대시보드 -->
+            <section id="dashboardPage" class="page">
+                <div class="cards">
+                    <div class="card"><div class="card-title">전체 직원</div><div class="card-value" id="employeeCount">0</div></div>
+                    <div class="card"><div class="card-title">전체 재고 품목</div><div class="card-value" id="totalInventoryCount">0</div></div>
+                    <div class="card"><div class="card-title">사용 중 품목</div><div class="card-value" id="inUseInventoryCount">0</div></div>
+                    <div class="card"><div class="card-title">승인 대기 신청</div><div class="card-value" id="pendingRequestCount">0</div></div>
+                </div>
+                <div class="panel">
+                    <div class="panel-header"><h3>최근 재고 상태</h3></div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr><th>품목명</th><th>분류</th><th>시리얼/식별번호</th><th>상태</th><th>사용자</th></tr>
+                            </thead>
+                            <tbody id="dashboardInventoryTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 직원 관리 -->
+            <section id="employeesPage" class="page">
+                <div class="panel" id="employeeAddPanel">
+                    <div class="panel-header"><h3>직원 등록</h3></div>
+                    <div class="form-grid">
+                        <div class="input-group"><label for="employeeName">이름</label><input id="employeeName" type="text"></div>
+                        <div class="input-group"><label for="employeeDepartment">부서</label><input id="employeeDepartment" type="text"></div>
+                        <div class="input-group"><label for="employeePosition">직급</label><input id="employeePosition" type="text"></div>
+                    </div>
+                    <button class="primary-button" onclick="addEmployee()" style="margin-top: 10px;">직원 등록</button>
+                </div>
+                <div class="panel">
+                    <div class="panel-header"><h3>직원 목록</h3></div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr><th>번호</th><th>이름</th><th>부서</th><th>직급</th><th>권한</th><th>이메일</th><th>관리</th></tr>
+                            </thead>
+                            <tbody id="employeeTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 재고 관리 -->
+            <section id="inventoryPage" class="page">
+                <!-- 관리자 전용 등록 폼 -->
+                <div class="panel" id="inventoryAddPanel">
+                    <div class="panel-header"><h3>신규 재고 등록 (관리자)</h3></div>
+                    <div class="form-grid">
+                        <div class="input-group"><label for="invName">품목명</label><input id="invName" type="text" placeholder="예: ThinkPad X1"></div>
+                        <div class="input-group"><label for="invCategory">분류</label><input id="invCategory" type="text" placeholder="예: 전자기기, 모니터"></div>
+                        <div class="input-group"><label for="invSerial">시리얼/식별번호</label><input id="invSerial" type="text" placeholder="SN-12345"></div>
+                    </div>
+                    <button class="primary-button" onclick="addInventory()" style="margin-top: 10px;">재고 등록</button>
+                </div>
+
+                <!-- 승인 대기 목록 (관리자 전용) -->
+                <div class="panel" id="inventoryRequestManagePanel">
+                    <div class="panel-header"><h3>재고 및 연장/반납 신청 승인 관리 (관리자)</h3></div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr><th>구분</th><th>신청자 정보</th><th>신청 품목</th><th>사유 / 특이사항</th><th>반납 예정일</th><th>관리</th></tr>
+                            </thead>
+                            <tbody id="inventoryRequestTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 전체 재고 목록 및 신청 -->
+                <div class="panel">
+                    <div class="panel-header"><h3>재고 목록 및 상태</h3></div>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr><th>번호</th><th>품목명</th><th>분류</th><th>시리얼번호</th><th>상태</th><th>현재 사용자</th><th>반납 예정일</th><th>관리/신청</th></tr>
+                            </thead>
+                            <tbody id="inventoryTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 설정 -->
+            <section id="settingsPage" class="page">
+                <div class="panel">
+                    <div class="panel-header"><h3>회사 설정</h3></div>
+                    <div class="input-group">
+                        <label for="companyName">회사명</label>
+                        <input id="companyName" type="text">
+                    </div>
+                    <button class="primary-button" onclick="saveSettings()">설정 저장</button>
+                </div>
+                <div class="panel">
+                    <h3>내 계정 정보</h3>
+                    <div id="myAccountInfo" style="margin-top: 15px; margin-bottom: 25px;"></div>
+                    
+                    <div class="panel-header" style="margin-top: 30px; margin-bottom: 15px;"><h3>비밀번호 변경</h3></div>
+                    <div class="input-group">
+                        <label for="currentPassword">원래 비밀번호</label>
+                        <input id="currentPassword" type="password">
+                    </div>
+                    <div class="input-group">
+                        <label for="newPassword">새로운 비밀번호</label>
+                        <input id="newPassword" type="password">
+                    </div>
+                    <div class="input-group">
+                        <label for="newPasswordConfirm">새로운 비밀번호 확인</label>
+                        <input id="newPasswordConfirm" type="password">
+                    </div>
+                    <button class="primary-button" onclick="changePassword()" style="margin-top: 10px;">비밀번호 변경</button>
+                </div>
+            </section>
+        </div>
+    </main>
+</div>
+
+<!-- 재고 신청 모달 -->
+<div id="applyModal" class="modal hidden">
+    <div class="modal-box">
+        <h2 id="applyModalTitle">재고 사용 신청</h2>
+        <input type="hidden" id="applyInventoryId">
+        <div class="input-group">
+            <label for="applyReason">사용 목적</label>
+            <input id="applyReason" type="text" placeholder="예: 업무용 개발 PC 요청">
+        </div>
+        <div class="input-group">
+            <label for="applyEndDate">사용 종료 예정일</label>
+            <input id="applyEndDate" type="date">
+        </div>
+        <div class="modal-buttons">
+            <button class="primary-button" onclick="submitInventoryApply()">신청 제출</button>
+            <button class="secondary-button" onclick="closeApplyModal()">취소</button>
+        </div>
+    </div>
+</div>
+
+<!-- 기간 연장 모달 -->
+<div id="extendModal" class="modal hidden">
+    <div class="modal-box">
+        <h2>사용 기간 연장 신청</h2>
+        <input type="hidden" id="extendInventoryId">
+        <div class="input-group">
+            <label for="extendEndDate">연장할 반납 예정일</label>
+            <input id="extendEndDate" type="date">
+        </div>
+        <div class="input-group">
+            <label for="extendReason">연장 사유</label>
+            <input id="extendReason" type="text" placeholder="예: 프로젝트 일정이 연장되어 추가 필요">
+        </div>
+        <div class="modal-buttons">
+            <button class="primary-button" onclick="submitExtend()">연장 신청 제출</button>
+            <button class="secondary-button" onclick="closeExtendModal()">취소</button>
+        </div>
+    </div>
+</div>
+
+<!-- 반납 신청 모달 -->
+<div id="returnModal" class="modal hidden">
+    <div class="modal-box">
+        <h2>재고 반납 신청</h2>
+        <input type="hidden" id="returnInventoryId">
+        <div class="input-group">
+            <label for="returnName">반납자 성함</label>
+            <input id="returnName" type="text">
+        </div>
+        <div class="input-group">
+            <label for="returnPhone">전화번호</label>
+            <input id="returnPhone" type="tel">
+        </div>
+        <div class="input-group">
+            <label for="returnEmail">이메일</label>
+            <input id="returnEmail" type="email">
+        </div>
+        <div class="input-group">
+            <label for="returnNotes">특이사항</label>
+            <textarea id="returnNotes" placeholder="예: 외관 파손 없음, 구성품(충전기, 마우스) 모두 포함하여 전달함"></textarea>
+        </div>
+        <div class="modal-buttons">
+            <button class="primary-button" onclick="submitReturnRequest()">반납 신청 제출</button>
+            <button class="secondary-button" onclick="closeReturnModal()">취소</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    require("./main.js");
+</script>
+</body>
+</html>

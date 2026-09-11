@@ -1,0 +1,34 @@
+{
+"name": "basic-erp",
+"version": "1.0.0",
+"description": "basic ERP desktop application",
+"main": "index.js",
+"author": "basic_ERP",
+"license": "MIT",
+"scripts": {
+"start": "electron .",
+"build": "electron-builder"
+},
+"devDependencies": {
+"electron": "^38.1.0",
+"electron-builder": "^26.0.12"
+},
+"build": {
+"appId": "com.basicerp.app",
+"productName": "basic_ERP",
+"directories": {
+"output": "dist"
+},
+"files": [
+"index.html",
+"index.js",
+"main.js",
+"package.json",
+"config.json"
+],
+"win": {
+"target": "nsis",
+"artifactName": "basic_ERP-Setup-${version}.${ext}"
+}
+}
+}
