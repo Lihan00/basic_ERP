@@ -128,3 +128,16 @@ ipcMain.handle("toggle-fullscreen", () => {
     mainWindow.setFullScreen(nextState);
     return nextState;
 });
+
+// 활동 로그 남기기
+ipcMain.handle("log-activity", async (event, message) => {
+    try {
+        await fetch(`${SERVER_URL}/api/log`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message })
+        });
+    } catch (error) {
+        console.error("[Main] 로그 전송 실패:", error);
+    }
+});

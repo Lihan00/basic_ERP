@@ -522,7 +522,8 @@ async function submitInventoryApply() {
     notifyAllAdmins("사용 신청", item.name, currentUser.name);
 
     alert("신청 요청을 보냈습니다. 관리자 승인 후 사용 가능합니다.");
-
+    ipcRenderer.invoke("log-activity", `[신청] ${currentUser.name}님이 '${item.name}' 사용을 신청했습니다.`); // 로그 추가
+    
     await ipcRenderer.invoke("save-data", appData);
     closeApplyModal();
     renderAll();
@@ -577,7 +578,8 @@ async function submitExtend() {
     notifyAllAdmins("연장 신청", item.name, currentUser.name);
 
     alert("연장 요청을 보냈습니다. 관리자 승인 후 반영됩니다.");
-
+    ipcRenderer.invoke("log-activity", `[연장] ${currentUser.name}님이 '${item.name}' 반납 연장을 신청했습니다.`); // 로그 추가
+    
     await ipcRenderer.invoke("save-data", appData);
     closeExtendModal();
     renderAll();
@@ -613,7 +615,8 @@ async function submitReturnRequest() {
     notifyAllAdmins("반납 신청", item.name, currentUser.name);
 
     alert("반납 신청이 완료되었습니다. 관리자 승인 후 반납이 처리됩니다.");
-
+    ipcRenderer.invoke("log-activity", `[반납] ${currentUser.name}님이 '${item.name}' 반납을 신청했습니다.`); // 로그 추가
+    
     await ipcRenderer.invoke("save-data", appData);
     closeReturnModal();
     renderAll();
@@ -655,6 +658,10 @@ async function approveRequest(reqId) {
 
     await ipcRenderer.invoke("save-data", appData);
     alert("요청이 승인되었습니다.");
+    
+    // [추가] 모든 승인 내역 활동 로그 기록
+    ipcRenderer.invoke("log-activity", `[${req.type} 승인] 관리자가 ${req.userName}님의 '${req.itemName}' ${req.type} 요청을 승인했습니다.`);
+
     renderAll();
 }
 
@@ -687,6 +694,10 @@ async function rejectRequest(reqId) {
 
     await ipcRenderer.invoke("save-data", appData);
     alert("요청이 거절되었습니다.");
+
+    // [추가] 모든 거절 내역 활동 로그 기록
+    ipcRenderer.invoke("log-activity", `[${req.type} 거절] 관리자가 ${req.userName}님의 '${req.itemName}' ${req.type} 요청을 거절했습니다.`);
+
     renderAll();
 }
 
@@ -773,8 +784,14 @@ async function addInventory() {
 // 10. 직원 삭제
 async function deleteEmployee(id) {
     if (!confirm("해당 직원을 삭제하시겠습니까?")) return;
+    const emp = appData.employees.find(e => e.id === id); // 삭제 전 직원 정보 찾기
+    
     appData.employees = appData.employees.filter(e => e.id !== id);
     await ipcRenderer.invoke("save-data", appData);
+    
+    // 로그 추가
+    if (emp) ipcRenderer.invoke("log-activity", `직원 삭제: ${emp.name} (${emp.department || '부서없음'})`);
+    
     renderAll();
 }
 
