@@ -23,7 +23,13 @@ function getTodayString() {
     return `${year}-${month}-${day}`;
 }
 
-// alert 확인 후 해당 입력 요소에 커서(포커스) 지정해주는 도우미 함수
+// 📌 1. 웹 브라우저 기본 alert 대신 Electron 네이티브 알림창 사용
+window.alert = function(message) {
+    // sendSync를 사용하면 기존 alert처럼 사용자가 '확인'을 누를 때까지 코드 실행을 멈추고 기다립니다.
+    ipcRenderer.sendSync("show-alert", message);
+};
+
+// 📌 2. 커서 지정 함수 (기본 형태)
 function setFocus(elementId) {
     setTimeout(() => {
         const el = document.getElementById(elementId);
@@ -31,7 +37,7 @@ function setFocus(elementId) {
             el.focus();
             if (typeof el.select === "function") el.select();
         }
-    }, 100);
+    }, 150);
 }
 
 window.addEventListener("DOMContentLoaded", async () => {
@@ -252,17 +258,24 @@ function renderAll() {
     // 직원 목록
     const empTbody = document.getElementById("employeeTableBody");
     if (empTbody) {
-        empTbody.innerHTML = appData.employees.map((emp, idx) => `
-            <tr>
-                <td>${idx + 1}</td>
-                <td>${emp.name}</td>
-                <td>${emp.department || "-"}</td>
-                <td>${emp.position || "-"}</td>
-                <td>${emp.role || "employee"}</td>
-                <td>${emp.email || "-"}</td>
-                <td><button class="danger-button" onclick="deleteEmployee(${emp.id})">삭제</button></td>
-            </tr>
-        `).join("");
+        empTbody.innerHTML = appData.employees.map((emp, idx) => {
+            // 📌 관리자(admin)인 경우 삭제 버튼을 없애고 '-' 로 표시
+            const deleteAction = emp.role === "admin" 
+                ? '<span style="color: #888; font-size: 12px;">삭제 불가</span>' 
+                : `<button class="danger-button" onclick="deleteEmployee(${emp.id})">삭제</button>`;
+
+            return `
+                <tr>
+                    <td>${idx + 1}</td>
+                    <td>${emp.name}</td>
+                    <td>${emp.department || "-"}</td>
+                    <td>${emp.position || "-"}</td>
+                    <td>${emp.role || "employee"}</td>
+                    <td>${emp.email || "-"}</td>
+                    <td>${deleteAction}</td>
+                </tr>
+            `;
+        }).join("");
     }
 
     // 재고 목록 및 신청/연장/반납 버튼
@@ -889,6 +902,28 @@ async function signup() {
         return;
     }
 
+    // 2. 📌 이메일 형식 검증 (입력값이 있을 경우에만 검사)
+    if (email) {
+        // 이메일 정규표현식: 공백 제외, @와 . 이 포함된 형태
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            alert("올바른 이메일 형식을 입력해 주세요. (예: user@example.com)");
+            setFocus("signupEmail");
+            return;
+        }
+    }
+
+    // 3. 📌 전화번호 형식 검증 (입력값이 있을 경우에만 검사)
+    if (phone) {
+        // 전화번호 정규표현식: 0으로 시작, 하이픈(-) 포함 (예: 010-1234-5678, 02-123-4567)
+        const phoneRegex = /^0\d{1,2}-\d{3,4}-\d{4}$/;
+        if (!phoneRegex.test(phone)) {
+            alert("올바른 전화번호 형식을 입력해 주세요. (예: 010-1234-5678)");
+            setFocus("signupPhone");
+            return;
+        }
+    }
+
     const newUser = {
         id: Date.now(),
         loginId, password, name, department, position, email, phone, role,
@@ -989,6 +1024,18 @@ function setupEventListeners() {
             if (e.key === "Enter") login();
         });
     }
+    // 2. 🔔 앱 내 알림창 외부 클릭 시 닫기 (모달창 제외)
+    document.addEventListener("click", (event) => {
+        const panel = document.getElementById("notificationPanel");
+        const notiBtn = document.querySelector(".noti-btn");
+        
+        // 알림 패널이 열려있고, 클릭한 곳이 알림창 내부나 버튼이 아닐 때만 닫기
+        if (panel && !panel.classList.contains("hidden")) {
+            if (!panel.contains(event.target) && notiBtn && !notiBtn.contains(event.target)) {
+                panel.classList.add("hidden");
+            }
+        }
+    });
 }
 
 // 전역 바인딩

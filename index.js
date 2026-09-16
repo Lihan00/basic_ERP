@@ -1,5 +1,5 @@
 // index.js
-const { app, BrowserWindow, ipcMain } = require("electron");
+const { app, BrowserWindow, ipcMain, dialog } = require("electron");
 const path = require("path");
 const fs = require("fs");
 
@@ -135,4 +135,15 @@ ipcMain.handle("log-activity", async (event, message) => {
     } catch (error) {
         console.error("[Main] 로그 전송 실패:", error);
     }
+});
+
+// 기본 alert 창 포커스 버그 해결을 위한 동기식 시스템 알림창 띄우기
+ipcMain.on("show-alert", (event, message) => {
+    dialog.showMessageBoxSync({
+        type: "info",
+        title: "알림",
+        message: String(message),
+        buttons: ["확인"] // 확인 버튼 하나만 있는 창 생성
+    });
+    event.returnValue = true; // 창이 닫히면 렌더러로 리턴하여 다음 코드 실행
 });
