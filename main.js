@@ -1,7 +1,8 @@
 // main.js
 const { ipcRenderer } = require("electron");
 
-let SERVER_URL = "https://erptest.shop";
+const SERVER_URL = "http://erptest.shop:3000";
+
 let appData = {
     users: [],
     employees: [],
@@ -41,15 +42,6 @@ function setFocus(elementId) {
 }
 
 window.addEventListener("DOMContentLoaded", async () => {
-    try {
-        const config = await ipcRenderer.invoke("get-config");
-        if (config && config.serverUrl) {
-            SERVER_URL = config.serverUrl;
-        }
-    } catch (err) {
-        console.error("[Renderer] config 수신 실패:", err);
-    }
-
     await loadServerData();
     setupEventListeners();
 
