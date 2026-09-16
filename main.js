@@ -1,7 +1,7 @@
 // main.js
 const { ipcRenderer } = require("electron");
 
-let SERVER_URL = "http://localhost:3000";
+let SERVER_URL = "https://erptest.shop";
 let appData = {
     users: [],
     employees: [],

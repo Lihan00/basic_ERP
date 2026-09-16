@@ -4,17 +4,17 @@ const path = require("path");
 const fs = require("fs");
 
 let mainWindow;
-let SERVER_URL = "http://localhost:3000";
+// 📌 접속 도메인을 erptest.shop으로 변경 (HTTPS 권장, 필요시 http로 수정)
+let SERVER_URL = "https://erptest.shop"; 
 
 function loadConfig() {
     try {
-        // 사용자 데이터 폴더 경로 지정 (빌드 후에도 수정 가능)
         const userDataPath = app.getPath("userData");
         const configPath = path.join(userDataPath, "config.json");
 
-        // 만약 사용자 폴더에 config.json이 없다면 기본 설정 파일 생성 (선택 사항)
         if (!fs.existsSync(configPath)) {
-            const defaultConfig = { serverUrl: "http://localhost:3000" };
+            // 📌 기본 설정값 변경
+            const defaultConfig = { serverUrl: "https://erptest.shop" };
             fs.writeFileSync(configPath, JSON.stringify(defaultConfig, null, 2), "utf8");
         }
 
@@ -63,7 +63,7 @@ ipcMain.handle("get-config", () => {
     return { serverUrl: SERVER_URL };
 });
 
-// 전체 데이터 불러오기
+// 이하 통신 API 코드는 기존과 동일하게 유지됩니다.
 ipcMain.handle("load-data", async () => {
     try {
         const response = await fetch(`${SERVER_URL}/api/data`);
@@ -75,7 +75,6 @@ ipcMain.handle("load-data", async () => {
     }
 });
 
-// 데이터 저장하기
 ipcMain.handle("save-data", async (event, data) => {
     try {
         const response = await fetch(`${SERVER_URL}/api/data`, {
@@ -91,7 +90,6 @@ ipcMain.handle("save-data", async (event, data) => {
     }
 });
 
-// 로그인 검증
 ipcMain.handle("login", async (event, credentials) => {
     try {
         const response = await fetch(`${SERVER_URL}/api/login`, {
@@ -106,7 +104,6 @@ ipcMain.handle("login", async (event, credentials) => {
     }
 });
 
-// 비밀번호 변경
 ipcMain.handle("change-password", async (event, payload) => {
     try {
         const response = await fetch(`${SERVER_URL}/api/change-password`, {
@@ -121,7 +118,6 @@ ipcMain.handle("change-password", async (event, payload) => {
     }
 });
 
-// 전체화면 토글
 ipcMain.handle("toggle-fullscreen", () => {
     if (!mainWindow) return false;
     const nextState = !mainWindow.isFullScreen();
@@ -129,7 +125,6 @@ ipcMain.handle("toggle-fullscreen", () => {
     return nextState;
 });
 
-// 활동 로그 남기기
 ipcMain.handle("log-activity", async (event, message) => {
     try {
         await fetch(`${SERVER_URL}/api/log`, {
