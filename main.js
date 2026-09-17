@@ -250,24 +250,28 @@ function renderAll() {
     // 직원 목록
     const empTbody = document.getElementById("employeeTableBody");
     if (empTbody) {
-        empTbody.innerHTML = appData.employees.map((emp, idx) => {
-            // 📌 관리자(admin)인 경우 삭제 버튼을 없애고 '-' 로 표시
-            const deleteAction = emp.role === "admin" 
-                ? '<span style="color: #888; font-size: 12px;">삭제 불가</span>' 
-                : `<button class="danger-button" onclick="deleteEmployee(${emp.id})">삭제</button>`;
+        if (currentUser && currentUser.role === "admin") { // 관리자일 때만 렌더링
+            empTbody.innerHTML = appData.employees.map((emp, idx) => {
+                const deleteAction = emp.role === "admin" 
+                    ? '<span style="color: #888; font-size: 12px;">삭제 불가</span>' 
+                    : `<button class="danger-button" onclick="deleteEmployee(${emp.id})">삭제</button>`;
 
-            return `
-                <tr>
-                    <td>${idx + 1}</td>
-                    <td>${emp.name}</td>
-                    <td>${emp.department || "-"}</td>
-                    <td>${emp.position || "-"}</td>
-                    <td>${emp.role || "employee"}</td>
-                    <td>${emp.email || "-"}</td>
-                    <td>${deleteAction}</td>
-                </tr>
-            `;
-        }).join("");
+                return `
+                    <tr>
+                        <td>${idx + 1}</td>
+                        <td>${emp.name}</td>
+                        <td>${emp.department || "-"}</td>
+                        <td>${emp.position || "-"}</td>
+                        <td>${emp.role || "employee"}</td>
+                        <td>${emp.email || "-"}</td>
+                        <td>${deleteAction}</td>
+                    </tr>
+                `;
+            }).join("");
+        } else {
+            // 일반 직원이 강제로 화면을 열어도 빈 칸만 보이게 처리
+            empTbody.innerHTML = "<tr><td colspan='7' style='text-align:center;'>접근 권한이 없습니다.</td></tr>";
+        }
     }
 
     // 재고 목록 및 신청/연장/반납 버튼
@@ -306,19 +310,24 @@ function renderAll() {
     // 관리자용 신청 요청 승인/거절 목록
     const reqTbody = document.getElementById("inventoryRequestTableBody");
     if (reqTbody) {
-        reqTbody.innerHTML = pendingRequests.map((req) => `
-            <tr>
-                <td><strong>${req.type || "신청"}</strong></td>
-                <td>${req.userName} (${req.department || "부서미정"})</td>
-                <td>${req.itemName}</td>
-                <td>${req.reason || req.notes || "-"}</td>
-                <td>${req.endDate || "-"}</td>
-                <td>
-                    <button class="action-button" onclick="approveRequest(${req.id})">승인</button>
-                    <button class="danger-button" onclick="rejectRequest(${req.id})">거절</button>
-                </td>
-            </tr>
-        `).join("");
+        if (currentUser && currentUser.role === "admin") { // 관리자일 때만 렌더링
+            reqTbody.innerHTML = pendingRequests.map((req) => `
+                <tr>
+                    <td><strong>${req.type || "신청"}</strong></td>
+                    <td>${req.userName} (${req.department || "부서미정"})</td>
+                    <td>${req.itemName}</td>
+                    <td>${req.reason || req.notes || "-"}</td>
+                    <td>${req.endDate || "-"}</td>
+                    <td>
+                        <button class="action-button" onclick="approveRequest(${req.id})">승인</button>
+                        <button class="danger-button" onclick="rejectRequest(${req.id})">거절</button>
+                    </td>
+                </tr>
+            `).join("");
+        } else {
+            // 일반 직원이 강제로 화면을 열어도 빈 칸만 보이게 처리
+            reqTbody.innerHTML = "<tr><td colspan='6' style='text-align:center;'>접근 권한이 없습니다.</td></tr>";
+        }
     }
 
     // 설정 탭 계정 정보
@@ -629,6 +638,12 @@ async function submitReturnRequest() {
 
 // 7. 관리자 요청 승인 / 거절 처리
 async function approveRequest(reqId) {
+    // 1. 관리자 권한 검증 추가
+    if (!currentUser || currentUser.role !== "admin") {
+        alert("관리자 권한이 필요한 기능입니다.");
+        return; // 함수 실행 즉시 중단
+    }
+
     const req = appData.requests.find(r => r.id === reqId);
     if (!req) return;
 
@@ -671,6 +686,12 @@ async function approveRequest(reqId) {
 }
 
 async function rejectRequest(reqId) {
+    // 1. 관리자 권한 검증 추가
+    if (!currentUser || currentUser.role !== "admin") {
+        alert("관리자 권한이 필요한 기능입니다.");
+        return; // 함수 실행 즉시 중단
+    }
+
     const req = appData.requests.find(r => r.id === reqId);
     if (!req) return;
 
@@ -708,6 +729,12 @@ async function rejectRequest(reqId) {
 
 // 8. 신규 직원 등록
 async function addEmployee() {
+    // 1. 관리자 권한 검증 추가
+    if (!currentUser || currentUser.role !== "admin") {
+        alert("관리자 권한이 필요한 기능입니다.");
+        return; // 함수 실행 즉시 중단
+    }
+
     const nameInput = document.getElementById("employeeName");
     const deptInput = document.getElementById("employeeDepartment");
     const posInput = document.getElementById("employeePosition");
@@ -746,6 +773,12 @@ async function addEmployee() {
 
 // 9. 신규 재고 등록
 async function addInventory() {
+    // 1. 관리자 권한 검증 추가
+    if (!currentUser || currentUser.role !== "admin") {
+        alert("관리자 권한이 필요한 기능입니다.");
+        return; // 함수 실행 즉시 중단
+    }
+    
     const nameInput = document.getElementById("invName");
     const categoryInput = document.getElementById("invCategory");
     const serialInput = document.getElementById("invSerial");
@@ -788,6 +821,12 @@ async function addInventory() {
 
 // 10. 직원 삭제
 async function deleteEmployee(id) {
+    // 1. 관리자 권한 검증 추가
+    if (!currentUser || currentUser.role !== "admin") {
+        alert("관리자 권한이 필요한 기능입니다.");
+        return; // 함수 실행 즉시 중단
+    }
+
     if (!confirm("해당 직원을 삭제하시겠습니까?")) return;
     const emp = appData.employees.find(e => e.id === id); // 삭제 전 직원 정보 찾기
     

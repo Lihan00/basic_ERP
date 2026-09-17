@@ -1,6 +1,6 @@
 {
 "name": "basic-erp",
-"version": "1.0.4",
+"version": "1.0.5",
 "description": "basic ERP desktop application",
 "main": "index.js",
 "author": "basic_ERP",

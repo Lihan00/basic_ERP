@@ -19,7 +19,7 @@ function createWindow() {
             contextIsolation: false
         }
     });
-
+    mainWindow.setMenu(null);
     mainWindow.loadFile(path.join(__dirname, "index.html"));
 }
 
